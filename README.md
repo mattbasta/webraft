@@ -49,3 +49,7 @@ class FooRaft extends RaftInterface {
 When you wish to add a node to the cluster, call `join('node address')` on an instance of your `RaftInterface` implementation. When a node leaves the cluster, call `leave('node address')`.
 
 When data becomes available, you can either call `gotData(payload)` on the appropriate `NodeInstance` implementation, or `gotData('from address', payload)` on the `RaftInterface` instance. Either works.
+
+## Assumptions
+
+WebRaft assumes that message delivery is guaranteed. If your transport doesn't make that guarantee, you must implement your own means of retrying messages and verifying delivery.
