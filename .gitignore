@@ -25,9 +25,4 @@ Thumbs.db
 desktop.ini
 *.sublime-project
 coverage/
-demo/
-temp.html
-temp.txt
-test.ll
-temp.ll
-temp.bt
+dist.js
