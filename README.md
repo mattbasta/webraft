@@ -60,12 +60,26 @@ When you wish to add a node to the cluster, call `join('node address')` on an in
 
 When data becomes available, you can either call `gotData(payload)` on the appropriate `NodeInstance` implementation, or `gotData('from address', payload)` on the `RaftInterface` instance. Either works.
 
-Next, if you want data to be persisted, you must implement a handler for the `apply` event on your instance. This can be done on the instance itself or externally.
+Next, if you want data to be persisted, you must implement a handler for the `apply` and `refresh` events on your instance. Both can be done on the instance itself or externally.
 
 ```js
 var inst = new MyRaftInterface();
-inst.listen('apply', (data, cb) => {
-    var update = () => db.update('key', data.command).then(cb, update);
+inst.listen('apply', (entry, index, cb) => {
+    var update = () => {
+        Promise.all([
+            snapshot.applyCommand(entry.command),
+            snapshot.set('term', entry.term),
+            snapshot.set('index', index),
+        ]).then(cb, update);
+    };
+    update();
+});
+inst.listen('refresh', cb => {
+    var refresh = () => fetch('https://host/snapshot').then(content => {
+        snapshot = content;
+        cb();
+    }, refresh);
+    refresh();
 });
 
 // or on the instance itself
@@ -74,9 +88,23 @@ class MyGreatRaftInterface extends RaftInterface {
     constructor(address) {
         super(address);
 
-        this.listen('apply', (data, cb) => {
-            window.localStorage.setItem('my data', data.command);
+        this.listen('apply', (entry, index, cb) => {
+            var state = JSON.parse(localStorage.getItem('data'));
+            jsonPatch.apply(state, data.command);
+            localStorage.setItem('data', JSON.stringify(state));
+            localStorage.setItem('term', entry.term);
+            localStorage.setItem('index', index);
+            // ... code to push to server, if needed ...
             cb();
+        });
+        this.listen('refresh', cb => {
+            var refresh = () => fetch('https://host/api/latest').then(resp => {
+                var parsed = JSON.parse(resp);
+                window.localStorage.setItem('data', parsed.state);
+                window.localStorage.setItem('term', parsed.term);
+                window.localStorage.setItem('index', parsed.index);
+                cb(parsed.term, parsed.index);
+            }, refresh);
         });
     }
     createInstance(address) {
@@ -119,8 +147,9 @@ instance.listen('type', (arg1, arg2) => console.log(arg1, arg2));
 - `state changed`: Emitted when the node changes state.
 - `heartbeat timeout`: Emitted when the leader hasn't been heard from in `heartbeatTimeout` milliseconds.
 - `start election`: Emitted when an election is started (generally this is fired immediately after `heartbeat timeout`).
-- `apply`: Emitted with the log entry to commit to the persistency layer and a callback parameter. The callback parameter should only be called after the data has been fully committed.
+- `apply`: Emitted with the log entry to commit to the persistency layer, an index, and a callback parameter. The callback parameter should only be called after all of the data has been fully committed.
 - `updated`: Emitted when a log is committed to the state machine. This fires after `apply` has fired and the callback has been called without an error.
+- `refresh`: Emitted with a callback when the node contains a state that's too old to be used with the cluster. This can happen if the node has a state that's older than the oldest online peer, or the node is severely lagged and has missed more than one log compaction cycle. When this is fired, the node MUST update its state from persistent storage and call the callback after the state has been updated. The callback should be called with the last applied entry's term and index.
 
 
 ### Timeouts and constants
@@ -168,4 +197,5 @@ class MyRaftInstance extends RaftInterface {
 ## Assumptions
 
 - WebRaft assumes that message delivery is guaranteed. If your transport doesn't make that guarantee, you must implement your own means of retrying messages and verifying delivery.
-- If the callback to the `apply` event is called with an error, the same `apply` event will be called again when the next log is to be committed. If the nature of your implementation requires that a log entry not just be marked as committed but rather be applied to the state machine on a majority of nodees, you should implement your own means of retrying indefinitely rather than calling the callback with an error.
+- The callback for the `apply` event should ONLY be called after the log entry has been fully committed. Calling it before the data has been fully persisted can result in data loss in certain edge cases, and nobody wants that.
+- The callback for the `refresh` event should ONLY be called after the state has been fully fetched an populated from persistent storage. Do not use a cached version of the state. If you call the callback too early, it can cause race conditions that may overwrite state and cause data loss.
