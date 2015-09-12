@@ -128,6 +128,12 @@ inst.listen('updated', () => this.setState({dataFromRaft: myDataStore.state}));
 ```
 
 
+### Methods
+
+#### `propose(command)`
+
+Returns a promise that resolves when the command is committed to the state machine. The promise will reject if there is a problem proposing the command.
+
 
 ### Events
 
