@@ -160,7 +160,7 @@ instance.listen('type', (arg1, arg2) => console.log(arg1, arg2));
 
 ### Timeouts and constants
 
-You can fiddle with the various numerical values that Raft depends on by overriding some getters on the `RaftInterface`.
+You can fiddle with the various numerical values that Raft depends on by overriding some getters.
 
 ```js
 class MyRaftInstance extends RaftInterface {
@@ -195,6 +195,16 @@ class MyRaftInstance extends RaftInterface {
      */
     get heartbeatTimeout() {
         return 200;
+    }
+}
+
+class MyNodInstance extends NodeInstance {
+    write() {
+        // ...
+    }
+
+    get messageTimeout() {
+        return 3000; // milliseconds
     }
 }
 ```
