@@ -127,6 +127,8 @@ When a command has been committed, each `RaftInterface` instance on all machines
 inst.listen('updated', () => this.setState({dataFromRaft: myDataStore.state}));
 ```
 
+**NOTE**: If you are running WebRaft in a single process (or performing synchronous RPC between multiple processes), any operation that might increment the commit index could potentially cause `updated` events to arrive out of order.
+
 
 ### Methods
 
