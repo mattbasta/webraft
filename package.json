@@ -1,0 +1,30 @@
+{
+  "name": "webraft",
+  "version": "0.1.0",
+  "description": "A transport and storage-agnostic implementation of Raft",
+  "main": "index.js",
+  "dependencies": {
+    "browserify": "^11.1.0",
+    "babelify": "^6.3.0",
+    "babel": "^5.5.8"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mattbasta/webraft.git"
+  },
+  "keywords": [
+    "raft",
+    "consensus",
+    "protocol"
+  ],
+  "author": "Matt Basta <me@mattbasta.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/mattbasta/webraft/issues"
+  },
+  "homepage": "https://github.com/mattbasta/webraft#readme"
+}
