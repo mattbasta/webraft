@@ -7,7 +7,6 @@ TAGS
 .emacs.desktop
 .#*
 build
-dist
 *~
 .buildout
 .emacs.d/.autosaves
@@ -25,4 +24,3 @@ Thumbs.db
 desktop.ini
 *.sublime-project
 coverage/
-dist.js
