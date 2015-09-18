@@ -1,6 +1,6 @@
 {
   "name": "webraft",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "A transport and storage-agnostic implementation of Raft",
   "main": "index.js",
   "dependencies": {},
@@ -28,6 +28,8 @@
   },
   "homepage": "https://github.com/mattbasta/webraft#readme",
   "browserify": {
-    "transform": ["babelify"]
+    "transform": [
+      "babelify"
+    ]
   }
 }
