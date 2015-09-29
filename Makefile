@@ -1,2 +1,5 @@
-all:
-	browserify index.js -t babelify --outfile dist/dist.js
+all: clean
+	babel -d dist/ lib/
+
+clean:
+	rm -rf dist/*

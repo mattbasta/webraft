@@ -1,106 +1,24 @@
-(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
-'use strict';
-
-exports.RaftInterface = require('./lib/interface');
-exports.NodeInstance = require('./lib/nodeInstance');
-
-},{"./lib/interface":4,"./lib/nodeInstance":5}],2:[function(require,module,exports){
-"use strict";
-
-Object.defineProperty(exports, "__esModule", {
-    value: true
-});
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-var LogEntry = function LogEntry(command, term) {
-    _classCallCheck(this, LogEntry);
-
-    this.command = command;
-    this.term = term;
-};
-
-exports["default"] = LogEntry;
-;
-
-LogEntry.from = function from(obj) {
-    return new LogEntry(obj.command, obj.term);
-};
-module.exports = exports["default"];
-
-},{}],3:[function(require,module,exports){
-"use strict";
-
-Object.defineProperty(exports, "__esModule", {
-    value: true
-});
-
-var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-var Emitter = (function () {
-    function Emitter() {
-        _classCallCheck(this, Emitter);
-
-        this.listeners = new Map();
-    }
-
-    _createClass(Emitter, [{
-        key: "emit",
-        value: function emit(type) {
-            for (var _len = arguments.length, args = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
-                args[_key - 1] = arguments[_key];
-            }
-
-            if (!this.listeners.has(type)) return;
-            this.listeners.get(type).forEach(function (h) {
-                return h.apply(undefined, args);
-            });
-        }
-    }, {
-        key: "listen",
-        value: function listen(type, handler) {
-            if (!this.listeners.has(type)) this.listeners.set(type, new Set());
-            this.listeners.get(type).add(handler);
-        }
-    }, {
-        key: "unlisten",
-        value: function unlisten(type, handler) {
-            if (!this.listeners.has(type)) return;
-            this.listeners.get(type)["delete"](handler);
-        }
-    }]);
-
-    return Emitter;
-})();
-
-exports["default"] = Emitter;
-;
-module.exports = exports["default"];
-
-},{}],4:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
     value: true
 });
 
-var _slicedToArray = (function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i['return']) _i['return'](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError('Invalid attempt to destructure non-iterable instance'); } }; })();
-
 var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
 
-var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { var object = _x, property = _x2, receiver = _x3; desc = parent = getter = undefined; _again = false; if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
+var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { var object = _x, property = _x2, receiver = _x3; desc = parent = getter = undefined; _again = false; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
 
-function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) arr2[i] = arr[i]; return arr2; } else { return Array.from(arr); } }
+function _slicedToArray(arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i['return']) _i['return'](); } finally { if (_d) throw _e; } } return _arr; } else { throw new TypeError('Invalid attempt to destructure non-iterable instance'); } }
 
-function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+function _defineProperty(obj, key, value) { return Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); }
+
+function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) arr2[i] = arr[i]; return arr2; } else { return Array.from(arr); } }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
 var _emitter = require('./emitter');
 
@@ -125,8 +43,6 @@ var REFRESHING = Symbol();
 var NOOP_COMMAND = Symbol('symbol used to represent a command for a placeholder log entry');
 
 var RaftInterface = (function (_Emitter) {
-    _inherits(RaftInterface, _Emitter);
-
     function RaftInterface(address) {
         _classCallCheck(this, RaftInterface);
 
@@ -155,6 +71,8 @@ var RaftInterface = (function (_Emitter) {
 
         this.heartbeat();
     }
+
+    _inherits(RaftInterface, _Emitter);
 
     _createClass(RaftInterface, [{
         key: 'join',
@@ -247,6 +165,42 @@ var RaftInterface = (function (_Emitter) {
         value: function quorum(responses) {
             if (!this.nodes.size || !responses) return false;
             return responses >= this.majority;
+        }
+    }, {
+        key: 'majority',
+        get: function () {
+            return Math.ceil(this.nodes.size / 2) + 1;
+        }
+    }, {
+        key: 'logIndex',
+        get: function () {
+            if (!this.log.length) return -1;
+            return this.log.length - 1;
+        }
+    }, {
+        key: 'logTerm',
+        get: function () {
+            if (!this.log.length) return -1;
+            return this.log[this.log.length - 1].term;
+        }
+    }, {
+        key: 'state',
+        get: function () {
+            return this.innerState;
+        },
+        set: function (newState) {
+            if (newState === this.innerState) return;
+            if (newState !== STATE_FOLLOWER && newState !== STATE_CANDIDATE && newState !== STATE_LEADER) {
+                throw new Error('Unknown state');
+            }
+
+            this.innerState = newState;
+            this.emit('state changed');
+        }
+    }, {
+        key: 'isLeader',
+        get: function () {
+            return this.state === STATE_LEADER;
         }
     }, {
         key: 'rpc',
@@ -481,7 +435,7 @@ var RaftInterface = (function (_Emitter) {
         }
     }, {
         key: FN_APPLY_COMMITS,
-        value: function value() {
+        value: function () {
             var _this7 = this;
 
             if (this.commitIndex <= this.lastApplied) {
@@ -532,6 +486,11 @@ var RaftInterface = (function (_Emitter) {
             return this.log[index];
         }
     }, {
+        key: 'minimumIndex',
+        get: function () {
+            return 0;
+        }
+    }, {
         key: 'createInstance',
 
         // Stuff that can be overridden
@@ -540,59 +499,18 @@ var RaftInterface = (function (_Emitter) {
             throw new Error('Raft instance factory not implemented');
         }
     }, {
-        key: 'majority',
-        get: function get() {
-            return Math.ceil(this.nodes.size / 2) + 1;
-        }
-    }, {
-        key: 'logIndex',
-        get: function get() {
-            if (!this.log.length) return -1;
-            return this.log.length - 1;
-        }
-    }, {
-        key: 'logTerm',
-        get: function get() {
-            if (!this.log.length) return -1;
-            return this.log[this.log.length - 1].term;
-        }
-    }, {
-        key: 'state',
-        get: function get() {
-            return this.innerState;
-        },
-        set: function set(newState) {
-            if (newState === this.innerState) return;
-            if (newState !== STATE_FOLLOWER && newState !== STATE_CANDIDATE && newState !== STATE_LEADER) {
-                throw new Error('Unknown state');
-            }
-
-            this.innerState = newState;
-            this.emit('state changed');
-        }
-    }, {
-        key: 'isLeader',
-        get: function get() {
-            return this.state === STATE_LEADER;
-        }
-    }, {
-        key: 'minimumIndex',
-        get: function get() {
-            return 0;
-        }
-    }, {
         key: 'electionTimeout',
-        get: function get() {
+        get: function () {
             return Math.random() * 150 + 150;
         }
     }, {
         key: 'heartbeatFrequency',
-        get: function get() {
+        get: function () {
             return 100;
         }
     }, {
         key: 'heartbeatTimeout',
-        get: function get() {
+        get: function () {
             return 200 + Math.random() * 50;
         }
     }]);
@@ -661,9 +579,9 @@ function bindRPC(raft) {
         // Reply false if log doesn’t contain an entry at prevLogIndex
         // whose term matches prevLogTerm (§5.3)
         else if (prevLogIndex !== -1 && // Ignore non-existant logs that don't exist
-            !raft.logEntryAt(prevLogIndex)) {
-                return false;
-            }
+        !raft.logEntryAt(prevLogIndex)) {
+            return false;
+        }
         var entryAtIndex = raft.logEntryAt(prevLogIndex);
         if (entryAtIndex && entryAtIndex.term !== prevLogTerm) {
             raft.deleteLogAtAndAfter(prevLogIndex);
@@ -820,9 +738,6 @@ function bindAll(raft) {
                         raft.nextIndices.set(address, raft.logIndex + 1);
                         raft.matchIndices.set(address, raft.minimumIndex);
                     }
-
-                    // Upon election: send initial empty AppendEntries RPCs
-                    // (heartbeat) to each server (§5.2)
                 } catch (err) {
                     _didIteratorError2 = true;
                     _iteratorError2 = err;
@@ -838,6 +753,8 @@ function bindAll(raft) {
                     }
                 }
 
+                // Upon election: send initial empty AppendEntries RPCs
+                // (heartbeat) to each server (§5.2)
                 raft.sendHeartbeat();
                 endElection();
             } else if (raft.quorum(votesDenied) || !raft.quorum(votesReceived + (raft.nodes.size + 1 - votesDenied - votesReceived))) {
@@ -883,170 +800,3 @@ function bindAll(raft) {
     });
 }
 module.exports = exports['default'];
-
-},{"./LogEntry":2,"./emitter":3}],5:[function(require,module,exports){
-'use strict';
-
-Object.defineProperty(exports, '__esModule', {
-    value: true
-});
-
-var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
-
-var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { var object = _x, property = _x2, receiver = _x3; desc = parent = getter = undefined; _again = false; if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
-
-function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
-
-var _emitter = require('./emitter');
-
-var _emitter2 = _interopRequireDefault(_emitter);
-
-var NodeInstance = (function (_Emitter) {
-    _inherits(NodeInstance, _Emitter);
-
-    function NodeInstance(address, raft) {
-        _classCallCheck(this, NodeInstance);
-
-        _get(Object.getPrototypeOf(NodeInstance.prototype), 'constructor', this).call(this);
-
-        this.address = address;
-        this.raft = raft;
-
-        this.activeMessageIDs = new Set();
-        this.incr = 0;
-
-        this.lastAppendEntries = 0;
-    }
-
-    _createClass(NodeInstance, [{
-        key: 'rpc',
-        value: function rpc(method) {
-            var _this = this;
-
-            for (var _len = arguments.length, args = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
-                args[_key - 1] = arguments[_key];
-            }
-
-            return new Promise(function (resolve, reject) {
-                var msgID = _this.incr++;
-                var cb;
-                var disconnectCB;
-                var timeout = null;
-
-                var cleanup = function cleanup() {
-                    _this.activeMessageIDs['delete'](msgID);
-                    _this.unlisten('data', cb);
-                    _this.raft.unlisten('leave', disconnectCB);
-                };
-
-                _this.activeMessageIDs.add(msgID);
-                try {
-                    _this.write({
-                        req: [method].concat(args),
-                        id: msgID,
-
-                        term: _this.raft.currentTerm
-                    });
-                } catch (e) {
-                    cleanup();
-                    return reject(e);
-                }
-                disconnectCB = function (machineID) {
-                    if (machineID !== _this.address) return;
-                    cleanup();
-                    reject(new Error('client left'));
-                };
-                cb = function (payload) {
-                    if (!('res' in payload) && !('err' in payload)) return;
-                    if (payload.id !== msgID) return;
-                    cleanup();
-                    _this.raft.sawTerm(payload.term);
-                    if ('err' in payload) {
-                        reject(payload.err);
-                    } else {
-                        resolve(payload.res);
-                    }
-                };
-                _this.listen('data', cb);
-                _this.raft.listen('leave', disconnectCB);
-
-                if (_this.messageTimeout < Infinity) {
-                    timeout = setTimeout(function () {
-                        cleanup();
-                        reject(new Error('timeout'));
-                    }, _this.messageTimeout);
-                }
-            });
-        }
-    }, {
-        key: 'gotData',
-        value: function gotData(payload) {
-            var _this2 = this;
-
-            if ('res' in payload || 'err' in payload) {
-                this.emit('data', payload, this.address);
-                return;
-            }
-
-            var response;
-            try {
-                response = this.raft.rpc(payload, this.address);
-            } catch (e) {
-                this.sendErrorResponse(payload, e);
-                throw e;
-            }
-            if (response instanceof Promise) {
-                response.then(function (response) {
-                    _this2.sendResponse(payload, response);
-                }, function (err) {
-                    _this2.sendErrorResponse(payload, err);
-                    return err;
-                });
-            } else {
-                this.sendResponse(payload, response);
-            }
-        }
-    }, {
-        key: 'sendResponse',
-        value: function sendResponse(origMessage, response) {
-            this.write({
-                id: origMessage.id,
-                res: typeof response === 'undefined' ? null : response,
-
-                term: this.raft.currentTerm
-            });
-        }
-    }, {
-        key: 'sendErrorResponse',
-        value: function sendErrorResponse(origMessage, error) {
-            this.write({
-                id: origMessage.id,
-                err: error ? error.toString() : null,
-
-                term: this.raft.currentTerm
-            });
-        }
-    }, {
-        key: 'write',
-        value: function write() {
-            throw new Error('Write method not implemented on raft node instance');
-        }
-    }, {
-        key: 'messageTimeout',
-        get: function get() {
-            return Infinity;
-        }
-    }]);
-
-    return NodeInstance;
-})(_emitter2['default']);
-
-exports['default'] = NodeInstance;
-;
-module.exports = exports['default'];
-
-},{"./emitter":3}]},{},[1]);

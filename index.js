@@ -1,2 +1,2 @@
-exports.RaftInterface = require('./lib/interface');
-exports.NodeInstance = require('./lib/nodeInstance');
+exports.RaftInterface = require('./dist/interface');
+exports.NodeInstance = require('./dist/nodeInstance');
