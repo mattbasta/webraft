@@ -1,6 +1,6 @@
 # WebRaft
 
-This is a work-in-progress implementation of the Raft algorithm, built in an implementation-agnostic way.
+This is a work-in-progress implementation of the [Raft](https://raft.github.io/) algorithm, built in an implementation-agnostic way.
 
 **This library is very much a work in progress.**
 
