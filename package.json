@@ -1,6 +1,6 @@
 {
   "name": "webraft",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "A transport and storage-agnostic implementation of Raft",
   "main": "index.js",
   "dependencies": {},
