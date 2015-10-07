@@ -310,6 +310,7 @@ var RaftInterface = (function (_Emitter) {
                 var bindRPC = function bindRPC() {
                     rpcCall.then(function (success) {
                         if (success) return resolve();
+                        if (_this5.state !== STATE_LEADER) return reject();
 
                         // If a follower’s log is inconsistent with the leader’s,
                         // the AppendEntries consistency check will fail in the

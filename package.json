@@ -5,12 +5,11 @@
   "main": "index.js",
   "dependencies": {},
   "devDependencies": {
-    "browserify": "^11.1.0",
-    "babelify": "^6.3.0",
     "babel": "^5.5.8"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "babel -d dist/ lib/"
   },
   "repository": {
     "type": "git",
@@ -26,10 +25,5 @@
   "bugs": {
     "url": "https://github.com/mattbasta/webraft/issues"
   },
-  "homepage": "https://github.com/mattbasta/webraft#readme",
-  "browserify": {
-    "transform": [
-      "babelify"
-    ]
-  }
+  "homepage": "https://github.com/mattbasta/webraft#readme"
 }
