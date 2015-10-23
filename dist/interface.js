@@ -97,7 +97,8 @@ var RaftInterface = (function (_Emitter) {
         key: 'gotData',
         value: function gotData(fromAddress, payload) {
             if (!this.nodes.has(fromAddress)) {
-                throw new Error('Got data for unrecognized address');
+                this.emit('debug', 'Got data for unrecognized address ' + fromAddress);
+                return;
             }
             this.nodes.get(fromAddress).gotData(payload);
         }
