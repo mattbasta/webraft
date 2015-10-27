@@ -218,3 +218,9 @@ class MyNodInstance extends NodeInstance {
 - The callback for the `apply` event should ONLY be called after the log entry has been fully committed. Calling it before the data has been fully persisted can result in data loss in certain edge cases, and nobody wants that.
 - The callback for the `refresh` event should ONLY be called after the state has been fully fetched an populated from persistent storage. Do not use a cached version of the state. If you call the callback too early, it can cause race conditions that may overwrite state and cause data loss.
 - The entry returned by the `apply` event is the same object that will be stored in the Raft log. Making changes to references to this object will cause data loss and/or indeterminism, as it will effectively be modifying the node's log.
+
+
+## Notes
+
+- When a promise returned by `propose` resolves, it means that the command has been committed on the leader and has been propagated to a majority of nodes. It does not, however, mean that the command has been propagated to the node on which `propose` was invoked.
+- If you use webraft such that more than one node lives within the same JavaScript process, all interaction between the nodes **must** be asynchronous. This is most easily done with `setImmediate()`.
