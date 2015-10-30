@@ -168,49 +168,15 @@ var RaftInterface = (function (_Emitter) {
             return responses >= this.majority;
         }
     }, {
-        key: 'majority',
-        get: function () {
-            return Math.ceil(this.nodes.size / 2) + 1;
-        }
-    }, {
-        key: 'logIndex',
-        get: function () {
-            if (!this.log.length) return -1;
-            return this.log.length - 1;
-        }
-    }, {
-        key: 'logTerm',
-        get: function () {
-            if (!this.log.length) return -1;
-            return this.log[this.log.length - 1].term;
-        }
-    }, {
-        key: 'state',
-        get: function () {
-            return this.innerState;
-        },
-        set: function (newState) {
-            if (newState === this.innerState) return;
-            if (newState !== STATE_FOLLOWER && newState !== STATE_CANDIDATE && newState !== STATE_LEADER) {
-                throw new Error('Unknown state');
-            }
-
-            this.innerState = newState;
-            this.emit('state changed');
-        }
-    }, {
-        key: 'isLeader',
-        get: function () {
-            return this.state === STATE_LEADER;
-        }
-    }, {
         key: 'rpc',
         value: function rpc(payload, sender) {
-            if (!this.rpcHandlers.has(payload.req[0])) {
-                throw new Error('Method not accepted: ' + payload.req[0]);
+            var term = payload[1];
+            var method = payload[3];
+            if (!this.rpcHandlers.has(method)) {
+                throw new Error('Method not accepted: ' + method);
             }
-            this.sawTerm(payload.term);
-            return this.rpcHandlers.get(payload.req[0]).apply(undefined, _toConsumableArray(payload.req.slice(1)).concat([sender, payload.term]));
+            this.sawTerm(term);
+            return this.rpcHandlers.get(method).apply(undefined, _toConsumableArray(payload.slice(4)).concat([sender, term]));
         }
     }, {
         key: 'heartbeat',
@@ -488,17 +454,53 @@ var RaftInterface = (function (_Emitter) {
             return this.log[index];
         }
     }, {
-        key: 'minimumIndex',
-        get: function () {
-            return 0;
-        }
-    }, {
         key: 'createInstance',
 
         // Stuff that can be overridden
 
         value: function createInstance(address) {
             throw new Error('Raft instance factory not implemented');
+        }
+    }, {
+        key: 'majority',
+        get: function () {
+            return Math.ceil(this.nodes.size / 2) + 1;
+        }
+    }, {
+        key: 'logIndex',
+        get: function () {
+            if (!this.log.length) return -1;
+            return this.log.length - 1;
+        }
+    }, {
+        key: 'logTerm',
+        get: function () {
+            if (!this.log.length) return -1;
+            return this.log[this.log.length - 1].term;
+        }
+    }, {
+        key: 'state',
+        get: function () {
+            return this.innerState;
+        },
+        set: function (newState) {
+            if (newState === this.innerState) return;
+            if (newState !== STATE_FOLLOWER && newState !== STATE_CANDIDATE && newState !== STATE_LEADER) {
+                throw new Error('Unknown state');
+            }
+
+            this.innerState = newState;
+            this.emit('state changed');
+        }
+    }, {
+        key: 'isLeader',
+        get: function () {
+            return this.state === STATE_LEADER;
+        }
+    }, {
+        key: 'minimumIndex',
+        get: function () {
+            return 0;
         }
     }, {
         key: 'electionTimeout',

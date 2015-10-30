@@ -58,11 +58,7 @@ var NodeInstance = (function (_Emitter) {
 
                 _this.activeMessageIDs.add(msgID);
                 try {
-                    _this.write({
-                        req: [method].concat(args),
-                        id: msgID,
-
-                        term: _this.raft.currentTerm });
+                    _this.write([msgID, _this.raft.currentTerm, method].concat(args));
                 } catch (e) {
                     cleanup();
                     return reject(e);
@@ -73,14 +69,16 @@ var NodeInstance = (function (_Emitter) {
                     reject(new Error('client left'));
                 };
                 cb = function (payload) {
-                    if (!('res' in payload) && !('err' in payload)) return;
-                    if (payload.id !== msgID) return;
+                    var result = payload[2];
+                    if (result !== 'res' && result !== 'err') return;
+                    if (payload[0] !== msgID) return;
+                    var term = payload[1];
                     cleanup();
-                    _this.raft.sawTerm(payload.term);
-                    if ('err' in payload) {
-                        reject(payload.err);
+                    _this.raft.sawTerm(term);
+                    if (result === 'err') {
+                        reject(payload[3]);
                     } else {
-                        resolve(payload.res);
+                        resolve(payload[3]);
                     }
                 };
                 _this.listen('data', cb);
@@ -99,8 +97,9 @@ var NodeInstance = (function (_Emitter) {
         value: function gotData(payload) {
             var _this2 = this;
 
-            if ('res' in payload || 'err' in payload) {
-                this.emit('data', payload, this.address);
+            var result = payload[2];
+            if (result === 'res' && result === 'err') {
+                this.emit('data', payload);
                 return;
             }
 
@@ -125,20 +124,14 @@ var NodeInstance = (function (_Emitter) {
     }, {
         key: 'sendResponse',
         value: function sendResponse(origMessage, response) {
-            this.write({
-                id: origMessage.id,
-                res: typeof response === 'undefined' ? null : response,
-
-                term: this.raft.currentTerm });
+            response = typeof response === 'undefined' ? null : response;
+            this.write([origMessage.id, this.raft.currentTerm, 'res', response]);
         }
     }, {
         key: 'sendErrorResponse',
         value: function sendErrorResponse(origMessage, error) {
-            this.write({
-                id: origMessage.id,
-                err: error ? error.toString() : null,
-
-                term: this.raft.currentTerm });
+            error = error ? error.toString() : null;
+            this.write([origMessage.id, this.raft.currentTerm, 'err', error]);
         }
     }, {
         key: 'write',
