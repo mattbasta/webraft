@@ -30,8 +30,23 @@ var Emitter = (function () {
     }, {
         key: "listen",
         value: function listen(type, handler) {
+            var _this = this;
+
             if (!this.listeners.has(type)) this.listeners.set(type, new Set());
             this.listeners.get(type).add(handler);
+
+            return function () {
+                _this.unlisten(type, handler);
+            };
+        }
+    }, {
+        key: "listenOnce",
+        value: function listenOnce(type, handler) {
+            var unlistener = this.listen(type, function () {
+                unlistener();
+                handler.apply(undefined, arguments);
+            });
+            return unlistener;
         }
     }, {
         key: "unlisten",

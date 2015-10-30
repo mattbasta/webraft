@@ -4,21 +4,21 @@ Object.defineProperty(exports, '__esModule', {
     value: true
 });
 
+var _slicedToArray = (function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i['return']) _i['return'](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError('Invalid attempt to destructure non-iterable instance'); } }; })();
+
 var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
 
-var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { var object = _x, property = _x2, receiver = _x3; desc = parent = getter = undefined; _again = false; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
+var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { var object = _x, property = _x2, receiver = _x3; _again = false; if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; desc = parent = undefined; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
 
-function _slicedToArray(arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i['return']) _i['return'](); } finally { if (_d) throw _e; } } return _arr; } else { throw new TypeError('Invalid attempt to destructure non-iterable instance'); } }
-
-function _defineProperty(obj, key, value) { return Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); }
-
 function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) arr2[i] = arr[i]; return arr2; } else { return Array.from(arr); } }
+
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
+function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
 var _emitter = require('./emitter');
 
@@ -27,6 +27,10 @@ var _emitter2 = _interopRequireDefault(_emitter);
 var _LogEntry = require('./LogEntry');
 
 var _LogEntry2 = _interopRequireDefault(_LogEntry);
+
+var _timers = require('./timers');
+
+var _timers2 = _interopRequireDefault(_timers);
 
 var STATE_FOLLOWER = Symbol('follower');
 var STATE_CANDIDATE = Symbol('candidate');
@@ -43,10 +47,13 @@ var REFRESHING = Symbol();
 var NOOP_COMMAND = Symbol('symbol used to represent a command for a placeholder log entry');
 
 var RaftInterface = (function (_Emitter) {
+    _inherits(RaftInterface, _Emitter);
+
     function RaftInterface(address) {
         _classCallCheck(this, RaftInterface);
 
         _get(Object.getPrototypeOf(RaftInterface.prototype), 'constructor', this).call(this);
+        (0, _timers2['default'])(this);
 
         this.address = address || Math.random().toString() + '::' + Date.now().toString();
         this.nodes = new Map();
@@ -72,8 +79,6 @@ var RaftInterface = (function (_Emitter) {
         this.heartbeat();
     }
 
-    _inherits(RaftInterface, _Emitter);
-
     _createClass(RaftInterface, [{
         key: 'join',
         value: function join(address) {
@@ -90,8 +95,17 @@ var RaftInterface = (function (_Emitter) {
         key: 'leave',
         value: function leave(address) {
             if (!this.nodes.has(address)) return;
+            this.nodes.get(address).end();
             this.nodes['delete'](address);
             this.emit('leave', address);
+        }
+    }, {
+        key: 'end',
+        value: function end() {
+            this.nodes.forEach(function (node) {
+                return node.end();
+            });
+            this.clearAllTimeouts();
         }
     }, {
         key: 'gotData',
@@ -111,18 +125,12 @@ var RaftInterface = (function (_Emitter) {
                 return this.distributeAndCommit(command);
             }
 
-            var me = this;
             return new Promise(function (resolve, reject) {
-                _this.listen('state changed', stateChange);
-
-                _this.nodes.get(_this.leaderID).rpc('Propose', command).then(resolve, reject).then(function () {
-                    return _this.unlisten('state changed', stateChange);
-                }); // This one runs regardless because promises
-
-                function stateChange() {
-                    me.unlisten('state changed', stateChange);
+                var unlistener = _this.listenOnce('state changed', function () {
                     reject(new Error('State changed while waiting for leader'));
-                }
+                });
+
+                _this.nodes.get(_this.leaderID).rpc('Propose', command).then(resolve, reject).then(unlistener); // This one runs regardless because promises
             });
         }
     }, {
@@ -151,12 +159,11 @@ var RaftInterface = (function (_Emitter) {
                 });
 
                 // Wait for the log to be replicated and applied
-                var cb = function cb(index) {
+                var unlistener = _this2.listen('updated', function (index) {
                     if (index < newIndex) return;
-                    _this2.unlisten('updated', cb);
+                    unlistener();
                     resolve();
-                };
-                _this2.listen('updated', cb);
+                });
 
                 // TODO: Listen for state changes and abort
             });
@@ -185,7 +192,7 @@ var RaftInterface = (function (_Emitter) {
 
             var clear = function clear(name) {
                 if (!_this3[name]) return;
-                clearTimeout(_this3[name]);
+                _this3.clearTimeout(_this3[name]);
                 _this3[name] = null;
             };
 
@@ -200,7 +207,7 @@ var RaftInterface = (function (_Emitter) {
 
             if (this.state === STATE_LEADER) {
                 if (this[TIMER_HEARTBEAT]) return;
-                this[TIMER_HEARTBEAT] = setTimeout(function () {
+                this[TIMER_HEARTBEAT] = this.setTimeout(function () {
                     _this3[TIMER_HEARTBEAT] = null;
                     _this3.sendHeartbeat();
                     _this3.heartbeat();
@@ -209,7 +216,7 @@ var RaftInterface = (function (_Emitter) {
             }
 
             clear(TIMER_HEARTBEAT);
-            this[TIMER_HEARTBEAT_TIMEOUT] = setTimeout(function () {
+            this[TIMER_HEARTBEAT_TIMEOUT] = this.setTimeout(function () {
                 _this3[TIMER_HEARTBEAT_TIMEOUT] = null;
                 _this3.emit('heartbeat timeout');
                 _this3.heartbeat();
@@ -403,7 +410,7 @@ var RaftInterface = (function (_Emitter) {
         }
     }, {
         key: FN_APPLY_COMMITS,
-        value: function () {
+        value: function value() {
             var _this7 = this;
 
             if (this.commitIndex <= this.lastApplied) {
@@ -463,27 +470,27 @@ var RaftInterface = (function (_Emitter) {
         }
     }, {
         key: 'majority',
-        get: function () {
+        get: function get() {
             return Math.ceil(this.nodes.size / 2) + 1;
         }
     }, {
         key: 'logIndex',
-        get: function () {
+        get: function get() {
             if (!this.log.length) return -1;
             return this.log.length - 1;
         }
     }, {
         key: 'logTerm',
-        get: function () {
+        get: function get() {
             if (!this.log.length) return -1;
             return this.log[this.log.length - 1].term;
         }
     }, {
         key: 'state',
-        get: function () {
+        get: function get() {
             return this.innerState;
         },
-        set: function (newState) {
+        set: function set(newState) {
             if (newState === this.innerState) return;
             if (newState !== STATE_FOLLOWER && newState !== STATE_CANDIDATE && newState !== STATE_LEADER) {
                 throw new Error('Unknown state');
@@ -494,27 +501,27 @@ var RaftInterface = (function (_Emitter) {
         }
     }, {
         key: 'isLeader',
-        get: function () {
+        get: function get() {
             return this.state === STATE_LEADER;
         }
     }, {
         key: 'minimumIndex',
-        get: function () {
+        get: function get() {
             return 0;
         }
     }, {
         key: 'electionTimeout',
-        get: function () {
+        get: function get() {
             return Math.random() * 150 + 150;
         }
     }, {
         key: 'heartbeatFrequency',
-        get: function () {
+        get: function get() {
             return 100;
         }
     }, {
         key: 'heartbeatTimeout',
-        get: function () {
+        get: function get() {
             return 200 + Math.random() * 50;
         }
     }]);
@@ -583,9 +590,9 @@ function bindRPC(raft) {
         // Reply false if log doesn’t contain an entry at prevLogIndex
         // whose term matches prevLogTerm (§5.3)
         else if (prevLogIndex !== -1 && // Ignore non-existant logs that don't exist
-        !raft.logEntryAt(prevLogIndex)) {
-            return false;
-        }
+            !raft.logEntryAt(prevLogIndex)) {
+                return false;
+            }
         var entryAtIndex = raft.logEntryAt(prevLogIndex);
         if (entryAtIndex && entryAtIndex.term !== prevLogTerm) {
             raft.deleteLogAtAndAfter(prevLogIndex);
@@ -742,6 +749,9 @@ function bindAll(raft) {
                         raft.nextIndices.set(address, raft.logIndex + 1);
                         raft.matchIndices.set(address, raft.minimumIndex);
                     }
+
+                    // Upon election: send initial empty AppendEntries RPCs
+                    // (heartbeat) to each server (§5.2)
                 } catch (err) {
                     _didIteratorError2 = true;
                     _iteratorError2 = err;
@@ -757,8 +767,6 @@ function bindAll(raft) {
                     }
                 }
 
-                // Upon election: send initial empty AppendEntries RPCs
-                // (heartbeat) to each server (§5.2)
                 raft.sendHeartbeat();
                 endElection();
             } else if (raft.quorum(votesDenied) || !raft.quorum(votesReceived + (raft.nodes.size + 1 - votesDenied - votesReceived))) {
@@ -784,7 +792,7 @@ function bindAll(raft) {
             }
         }
 
-        raft[TIMER_ELECTION] = electionTimeout = setTimeout(function () {
+        raft[TIMER_ELECTION] = electionTimeout = raft.setTimeout(function () {
             // Check the numbers one last time.
             // TODO: Remove this one join/leave support is added.
             gotVote();
@@ -798,7 +806,7 @@ function bindAll(raft) {
 
         function endElection() {
             if (!electionOngoing) return;
-            clearTimeout(electionTimeout);
+            raft.clearTimeout(electionTimeout);
             electionOngoing = false;
         }
     });
