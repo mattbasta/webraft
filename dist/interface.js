@@ -66,6 +66,7 @@ var RaftInterface = (function (_Emitter) {
 
         this.log = [];
 
+        this.minimumIndex = 0;
         this.commitIndex = -1;
         this.lastApplied = -1;
         this.nextIndices = null;
@@ -460,11 +461,11 @@ var RaftInterface = (function (_Emitter) {
             if (!this.log[index]) return null;
             return this.log[index];
         }
-    }, {
-        key: 'createInstance',
 
         // Stuff that can be overridden
 
+    }, {
+        key: 'createInstance',
         value: function createInstance(address) {
             throw new Error('Raft instance factory not implemented');
         }
@@ -503,11 +504,6 @@ var RaftInterface = (function (_Emitter) {
         key: 'isLeader',
         get: function get() {
             return this.state === STATE_LEADER;
-        }
-    }, {
-        key: 'minimumIndex',
-        get: function get() {
-            return 0;
         }
     }, {
         key: 'electionTimeout',
