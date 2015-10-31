@@ -1,5 +1,7 @@
 # WebRaft
 
+[![Build Status](https://travis-ci.org/mattbasta/webraft.svg)](https://travis-ci.org/mattbasta/webraft)
+
 This is a work-in-progress implementation of the [Raft](https://raft.github.io/) algorithm, built in an implementation-agnostic way.
 
 **This library is very much a work in progress.**
