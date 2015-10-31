@@ -27,10 +27,10 @@ function timerMixin(base) {
     };
 
     base.clearAllTimeouts = function () {
-        this.timers.forEach(function (ref) {
+        timers.forEach(function (ref) {
             return clearTimeout(ref);
         });
-        this.timers.clear();
+        timers.clear();
     };
 }
 

@@ -5,10 +5,12 @@
   "main": "index.js",
   "dependencies": {},
   "devDependencies": {
-    "babel": "^5.8.29"
+    "babel": "^5.8.29",
+    "mocha": "^2.3.3"
   },
   "scripts": {
-    "build": "babel -d dist/ lib/"
+    "build": "babel -d dist/ lib/",
+    "test": "mocha --compilers js:babel/register"
   },
   "repository": {
     "type": "git",
