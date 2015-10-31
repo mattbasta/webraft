@@ -23,7 +23,7 @@ describe('Node Instances', () => {
         timeout = Infinity;
         raft = {
             listen: () => () => {},
-            sawTerm: () => {},
+            emit: () => {},
             rpc: () => {},
         };
         foo = new FooInstance('address', raft);
@@ -42,8 +42,8 @@ describe('Node Instances', () => {
             .withArgs([0, 123, 'req', 'method', 'x', 'y'])
             .once();
         sandbox.mock(raft)
-            .expects('sawTerm')
-            .withArgs(456)
+            .expects('emit')
+            .withArgs('saw term', 456)
             .once();
 
         foo.rpc('method', 'x', 'y').then(done);
@@ -59,8 +59,8 @@ describe('Node Instances', () => {
             .withArgs([0, 123, 'req', 'method', 'x', 'y'])
             .once();
         sandbox.mock(raft)
-            .expects('sawTerm')
-            .withArgs(456)
+            .expects('emit')
+            .withArgs('saw term', 456)
             .once();
 
         foo.rpc('method', 'x', 'y').then(val => {
@@ -79,8 +79,8 @@ describe('Node Instances', () => {
             .withArgs([0, 123, 'req', 'method', 'x', 'y'])
             .once();
         sandbox.mock(raft)
-            .expects('sawTerm')
-            .withArgs(456)
+            .expects('emit')
+            .withArgs('saw term', 456)
             .once();
 
         foo.rpc('method', 'x', 'y').then(null, err => {
@@ -99,8 +99,8 @@ describe('Node Instances', () => {
             .withArgs([0, 123, 'req', 'method', 'x', 'y'])
             .once();
         sandbox.mock(raft)
-            .expects('sawTerm')
-            .withArgs(456)
+            .expects('emit')
+            .withArgs('saw term', 456)
             .once();
 
         foo.rpc('method', 'x', 'y').then(done);

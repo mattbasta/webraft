@@ -79,7 +79,7 @@ var NodeInstance = (function (_Emitter) {
                     if (payload[0] !== msgID) return;
                     var term = payload[1];
                     cleanup();
-                    _this.raft.sawTerm(term);
+                    _this.raft.emit('saw term', term);
                     if (result === 'err') {
                         reject(payload[3]);
                     } else {
@@ -110,6 +110,8 @@ var NodeInstance = (function (_Emitter) {
                 this.emit('data', payload);
                 return;
             }
+
+            this.raft.emit('saw term', payload[1]);
 
             var response;
             try {

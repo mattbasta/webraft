@@ -183,7 +183,6 @@ var RaftInterface = (function (_Emitter) {
             if (!this.rpcHandlers.has(method)) {
                 throw new Error('Method not accepted: ' + method);
             }
-            this.sawTerm(term);
             return this.rpcHandlers.get(method).apply(undefined, _toConsumableArray(payload.slice(4)).concat([sender, term]));
         }
     }, {
@@ -310,7 +309,7 @@ var RaftInterface = (function (_Emitter) {
                 // When the AppendEntries call finally succeeds, we want to update
                 // our list of indices.
                 _this5.matchIndices.set(node.address, _this5.logIndex);
-                _this5.checkReplicationAndCommit();
+                _this5.emit('check replication and commit');
             }, Promise.reject.bind(Promise));
         }
     }, {
@@ -318,88 +317,6 @@ var RaftInterface = (function (_Emitter) {
         value: function getEntrySlice(startIndex) {
             if (startIndex === -1) return this.log;
             return this.log.slice(startIndex + this.minimumIndex);
-        }
-    }, {
-        key: 'checkReplicationAndCommit',
-        value: function checkReplicationAndCommit() {
-            var _this6 = this;
-
-            var valueMap = new Map(); // index -> [index, count]
-            valueMap.set(this.logIndex, [this.logIndex, 1]);
-
-            // Tally up each index that we know each follower is caught up to.
-            this.matchIndices.forEach(function (value) {
-                if (value <= _this6.commitIndex) return;
-
-                var count = 1;
-                if (valueMap.has(value)) {
-                    count = valueMap.get(value)[1] + 1;
-                }
-
-                valueMap.set(value, [value, count]);
-
-                // Increment all seen indices lower than the current one.
-                var _iteratorNormalCompletion = true;
-                var _didIteratorError = false;
-                var _iteratorError = undefined;
-
-                try {
-                    for (var _iterator = valueMap[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
-                        var key = _step.value;
-
-                        if (key < value) {
-                            valueMap.set(key, [key, valueMap.get(key)[1] + 1]);
-                        }
-                    }
-                } catch (err) {
-                    _didIteratorError = true;
-                    _iteratorError = err;
-                } finally {
-                    try {
-                        if (!_iteratorNormalCompletion && _iterator['return']) {
-                            _iterator['return']();
-                        }
-                    } finally {
-                        if (_didIteratorError) {
-                            throw _iteratorError;
-                        }
-                    }
-                }
-            });
-
-            // Sort the indices by their count.
-            var sorted = [];
-            valueMap.forEach(function (v) {
-                return sorted.push(v);
-            });
-            sorted.sort(function (a, b) {
-                return a[1] - b[1];
-            });
-            var topIndex = this.commitIndex;
-            sorted.forEach(function (v) {
-                var _v = _slicedToArray(v, 2);
-
-                var index = _v[0];
-                var count = _v[1];
-
-                if (_this6.quorum(count) && index > topIndex) {
-                    topIndex = index;
-                }
-            });
-            if (topIndex > this.logIndex) topIndex = this.logIndex;
-            if (topIndex === this.commitIndex) return;
-            this.setCommitIndex(topIndex);
-        }
-    }, {
-        key: 'sawTerm',
-        value: function sawTerm(term) {
-            // If RPC request or response contains term T > currentTerm:
-            // set currentTerm = T, convert to follower (§5.1)
-            if (term > this.currentTerm) {
-                this.currentTerm = term;
-                this.state = STATE_FOLLOWER;
-                this.emit('term change');
-            }
         }
     }, {
         key: 'setCommitIndex',
@@ -412,7 +329,7 @@ var RaftInterface = (function (_Emitter) {
     }, {
         key: FN_APPLY_COMMITS,
         value: function value() {
-            var _this7 = this;
+            var _this6 = this;
 
             if (this.commitIndex <= this.lastApplied) {
                 return;
@@ -433,21 +350,21 @@ var RaftInterface = (function (_Emitter) {
             // If we followed the spec to the letter, a database error could lead
             // to "committed" data never ending up in persistent storage.
             this.emit('apply', this.logEntryAt(this.lastApplied + 1), this.lastApplied + 1, function () {
-                _this7.emit('debug', 'commit successfully applied ' + (_this7.lastApplied + 1));
-                _this7[APPLYING] = false;
+                _this6.emit('debug', 'commit successfully applied ' + (_this6.lastApplied + 1));
+                _this6[APPLYING] = false;
 
                 // *now* we update lastApplied.
-                _this7.lastApplied++;
-                var indexToEmit = _this7.lastApplied;
+                _this6.lastApplied++;
+                var indexToEmit = _this6.lastApplied;
 
                 // If there's more work to be done, run again. Otherwise
                 // fire the callback.
-                if (_this7.commitIndex > _this7.lastApplied) {
+                if (_this6.commitIndex > _this6.lastApplied) {
                     // We call ourselves, which creates a new promise, then
                     // make that one resolve/reject this one.
-                    _this7[FN_APPLY_COMMITS]();
+                    _this6[FN_APPLY_COMMITS]();
                 }
-                _this7.emit('updated', indexToEmit);
+                _this6.emit('updated', indexToEmit);
             });
         }
     }, {
@@ -658,6 +575,16 @@ function bindAll(raft) {
         raft.votedFor = null;
     });
 
+    raft.listen('saw term', function (term) {
+        // If RPC request or response contains term T > currentTerm:
+        // set currentTerm = T, convert to follower (§5.1)
+        if (term > raft.currentTerm) {
+            raft.currentTerm = term;
+            raft.state = STATE_FOLLOWER;
+            raft.emit('term change');
+        }
+    });
+
     raft.listen('state changed', function () {
         var _STATE_FOLLOWER$STATE_CANDIDATE$STATE_LEADER$raft$state;
 
@@ -669,6 +596,74 @@ function bindAll(raft) {
 
     raft.listen('heartbeat timeout', function () {
         raft.emit('start election');
+    });
+
+    raft.listen('check replication and commit', function () {
+        var valueMap = new Map(); // index -> [index, count]
+        valueMap.set(raft.logIndex, [raft.logIndex, 1]);
+
+        // Tally up each index that we know each follower is caught up to.
+        raft.matchIndices.forEach(function (value) {
+            if (value <= raft.commitIndex) return;
+
+            var count = 1;
+            if (valueMap.has(value)) {
+                count = valueMap.get(value)[1] + 1;
+            }
+
+            valueMap.set(value, [value, count]);
+
+            // Increment all seen indices lower than the current one.
+            var _iteratorNormalCompletion = true;
+            var _didIteratorError = false;
+            var _iteratorError = undefined;
+
+            try {
+                for (var _iterator = valueMap[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+                    var key = _step.value;
+
+                    if (key < value) {
+                        valueMap.set(key, [key, valueMap.get(key)[1] + 1]);
+                    }
+                }
+            } catch (err) {
+                _didIteratorError = true;
+                _iteratorError = err;
+            } finally {
+                try {
+                    if (!_iteratorNormalCompletion && _iterator['return']) {
+                        _iterator['return']();
+                    }
+                } finally {
+                    if (_didIteratorError) {
+                        throw _iteratorError;
+                    }
+                }
+            }
+        });
+
+        // Sort the indices by their count.
+        var sorted = [];
+        valueMap.forEach(function (v) {
+            return sorted.push(v);
+        });
+        sorted.sort(function (a, b) {
+            return a[1] - b[1];
+        });
+        var topIndex = raft.commitIndex;
+        sorted.forEach(function (v) {
+            var _v = _slicedToArray(v, 2);
+
+            var index = _v[0];
+            var count = _v[1];
+
+            if (raft.quorum(count) && index > topIndex) {
+                topIndex = index;
+            }
+        });
+        if (topIndex > raft.logIndex) topIndex = raft.logIndex;
+        if (topIndex === raft.commitIndex) return;
+        raft.setCommitIndex(topIndex);
     });
 
     raft.listen('start election', function (newElection) {

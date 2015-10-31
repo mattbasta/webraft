@@ -141,11 +141,12 @@ Returns a promise that resolves when the command is committed to the state machi
 
 ### Events
 
-Events can be listened for using the `listen(type, handler)` method (`unlisten(type, handler)` is available).
+Events can be listened for using the `listen(type, handler)` method (`unlisten(type, handler)` is available). Broadcasting events is done via `emit(type, ...args)`.
 
 ```js
 var instance = new MyRaftInstance();
 instance.listen('type', (arg1, arg2) => console.log(arg1, arg2));
+instance.emit('type', 1, 2);
 ```
 
 
@@ -160,6 +161,12 @@ instance.listen('type', (arg1, arg2) => console.log(arg1, arg2));
 - `apply`: Emitted with the log entry to commit to the persistency layer, an index, and a callback parameter. The callback parameter should only be called after all of the data has been fully committed.
 - `updated`: Emitted when a log is committed to the state machine. This fires after `apply` has fired and the callback has been called without an error.
 - `refresh`: Emitted with a callback when the node contains a state that's too old to be used with the cluster. This can happen if the node has a state that's older than the oldest online peer, or the node is severely lagged and has missed more than one log compaction cycle. When this is fired, the node MUST update its state from persistent storage and call the callback after the state has been updated. The callback should be called with the last applied entry's term and index.
+
+Other private events may exist, though no guarantees are made to their stability or behavior.
+
+The `listen()` method returns a function. Calling the returned function is the same as properly calling `unlisten()`. This saves a surprising amount of time and code, especially in nested code.
+
+A `listenOnce()` method is also available with the same signature as `listen()`, though `listenOnce()` will automatically unregister itself after the callback has fired a single time.
 
 
 ### Timeouts and constants
