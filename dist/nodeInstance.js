@@ -34,7 +34,6 @@ var NodeInstance = (function (_Emitter) {
         this.address = address;
         this.raft = raft;
 
-        this.activeMessageIDs = new Set();
         this.incr = 0;
 
         this.lastAppendEntries = 0;
@@ -63,12 +62,10 @@ var NodeInstance = (function (_Emitter) {
 
                 var cleanup = function cleanup() {
                     _this.clearTimeout(timeout);
-                    _this.activeMessageIDs['delete'](msgID);
                     dataUnlistener();
                     leaveUnlistener();
                 };
 
-                _this.activeMessageIDs.add(msgID);
                 try {
                     _this.write([msgID, _this.raft.currentTerm, 'req', method].concat(args));
                 } catch (e) {
