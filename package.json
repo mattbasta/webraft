@@ -6,7 +6,8 @@
   "dependencies": {},
   "devDependencies": {
     "babel": "^5.8.29",
-    "mocha": "^2.3.3"
+    "mocha": "^2.3.3",
+    "sinon": "^1.17.2"
   },
   "scripts": {
     "build": "babel -d dist/ lib/",

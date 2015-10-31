@@ -18,6 +18,10 @@ var _emitter = require('./emitter');
 
 var _emitter2 = _interopRequireDefault(_emitter);
 
+var _timers = require('./timers');
+
+var _timers2 = _interopRequireDefault(_timers);
+
 var NodeInstance = (function (_Emitter) {
     _inherits(NodeInstance, _Emitter);
 
@@ -25,12 +29,12 @@ var NodeInstance = (function (_Emitter) {
         _classCallCheck(this, NodeInstance);
 
         _get(Object.getPrototypeOf(NodeInstance.prototype), 'constructor', this).call(this);
+        (0, _timers2['default'])(this);
 
         this.address = address;
         this.raft = raft;
 
         this.activeMessageIDs = new Set();
-        this.activeTimeouts = new Set();
         this.incr = 0;
 
         this.lastAppendEntries = 0;
@@ -39,10 +43,7 @@ var NodeInstance = (function (_Emitter) {
     _createClass(NodeInstance, [{
         key: 'end',
         value: function end() {
-            this.activeTimeouts.forEach(function (timeout) {
-                return clearTimeout(timeout);
-            });
-            this.activeTimeouts.clear();
+            this.clearAllTimeouts();
         }
     }, {
         key: 'rpc',
@@ -55,17 +56,16 @@ var NodeInstance = (function (_Emitter) {
 
             return new Promise(function (resolve, reject) {
                 var msgID = _this.incr++;
-                var cb;
-                var disconnectCB;
                 var timeout = null;
 
+                var dataUnlistener;
+                var leaveUnlistener;
+
                 var cleanup = function cleanup() {
+                    _this.clearTimeout(timeout);
                     _this.activeMessageIDs['delete'](msgID);
-                    if (timeout !== null) {
-                        _this.activeTimeouts['delete'](timeout);
-                    }
-                    _this.unlisten('data', cb);
-                    _this.raft.unlisten('leave', disconnectCB);
+                    dataUnlistener();
+                    leaveUnlistener();
                 };
 
                 _this.activeMessageIDs.add(msgID);
@@ -75,12 +75,8 @@ var NodeInstance = (function (_Emitter) {
                     cleanup();
                     return reject(e);
                 }
-                disconnectCB = function (machineID) {
-                    if (machineID !== _this.address) return;
-                    cleanup();
-                    reject(new Error('client left'));
-                };
-                cb = function (payload) {
+
+                dataUnlistener = _this.listen('data', function (payload) {
                     var result = payload[2];
                     if (result !== 'res' && result !== 'err') return;
                     if (payload[0] !== msgID) return;
@@ -92,17 +88,18 @@ var NodeInstance = (function (_Emitter) {
                     } else {
                         resolve(payload[3]);
                     }
-                };
-                _this.listen('data', cb);
-                _this.raft.listen('leave', disconnectCB);
+                });
+                leaveUnlistener = _this.raft.listen('leave', function (machineID) {
+                    if (machineID !== _this.address) return;
+                    cleanup();
+                    reject(new Error('client left'));
+                });
 
                 if (_this.messageTimeout < Infinity) {
-                    timeout = setTimeout(function () {
+                    timeout = _this.setTimeout(function () {
                         cleanup();
-                        timeout = null;
                         reject(new Error('timeout'));
                     }, _this.messageTimeout);
-                    _this.activeTimeouts.add(timeout);
                 }
             });
         }
@@ -112,7 +109,7 @@ var NodeInstance = (function (_Emitter) {
             var _this2 = this;
 
             var result = payload[2];
-            if (result === 'res' && result === 'err') {
+            if (result === 'res' || result === 'err') {
                 this.emit('data', payload);
                 return;
             }
@@ -129,11 +126,11 @@ var NodeInstance = (function (_Emitter) {
                     _this2.sendResponse(payload, response);
                 }, function (err) {
                     _this2.sendErrorResponse(payload, err);
-                    return err;
+                    return err; // to allow internal error reporting
                 });
             } else {
-                this.sendResponse(payload, response);
-            }
+                    this.sendResponse(payload, response);
+                }
         }
     }, {
         key: 'sendResponse',
