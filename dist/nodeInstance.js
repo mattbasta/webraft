@@ -70,7 +70,7 @@ var NodeInstance = (function (_Emitter) {
 
                 _this.activeMessageIDs.add(msgID);
                 try {
-                    _this.write([msgID, _this.raft.currentTerm, method].concat(args));
+                    _this.write([msgID, _this.raft.currentTerm, 'req', method].concat(args));
                 } catch (e) {
                     cleanup();
                     return reject(e);
