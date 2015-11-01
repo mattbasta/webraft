@@ -2,9 +2,9 @@
 
 [![Build Status](https://travis-ci.org/mattbasta/webraft.svg)](https://travis-ci.org/mattbasta/webraft)
 
-This is a work-in-progress implementation of the [Raft](https://raft.github.io/) algorithm, built in an implementation-agnostic way.
-
 **This library is very much a work in progress.**
+
+This is a work-in-progress implementation of the [Raft](https://raft.github.io/) algorithm, built in an implementation-agnostic way.
 
 - Transport-agnostic
 - Persistence layer-agnostic
@@ -233,3 +233,6 @@ class MyNodInstance extends NodeInstance {
 
 - When a promise returned by `propose` resolves, it means that the command has been committed on the leader and has been propagated to a majority of nodes. It does not, however, mean that the command has been propagated to the node on which `propose` was invoked.
 - If you use webraft such that more than one node lives within the same JavaScript process, all interaction between the nodes **must** be asynchronous. This is most easily done with `setImmediate()`.
+- Section 8
+ - Read requests are not implemented by WebRaft. Rather, it is the responsibility of the consumer to provide a means of exposing an interface to the state machine. The consumer can use the `isLeader` getter on the `RaftInterface` class to decide whether to reject a request and provide a means for contacting the leader.
+ - WebRaft automatically forwards proposal requests to the leader if the current node is not the leader. This is contrary to the spec which states to reject the request and redirect the client. While WebRaft is transport agnostic however, it is transport-centric; this means that it makes sense for WebRaft to implement this behavior.
